@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Felix the Cat — Archivio Digitale</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0D0D0D;
+    --bg-panel:  #141414;
+    --bg-hover:  #1A1A1A;
+    --border:    #1E1E1E;
+    --border-md: #2A2A2A;
+    --accent:    #C8B89A;
+    --accent-dim:#7A6E5F;
+    --text:      #F0EDE8;
+    --text-sec:  #6B7280;
+    --text-ter:  #3D3D3D;
+    --mono:      'DM Mono', monospace;
+    --sans:      'Inter', sans-serif;
+  }
+
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.6; }
+
+  /* ── LAYOUT ── */
+  #app { display: flex; flex-direction: column; min-height: 100vh; }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 40px;
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+    position: sticky;
+    top: 0;
+    background: rgba(13,13,13,0.95);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+  }
+  header h1 { font-family: var(--mono); font-size: 13px; font-weight: 400; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; }
+  header span { font-family: var(--sans); font-size: 12px; color: var(--text-sec); }
+
+  main { flex: 1; padding: 40px; max-width: 1400px; margin: 0 auto; width: 100%; }
+
+  /* ── SEARCH BAR ── */
+  .search-area {
+    margin-bottom: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .search-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .search-input-wrap {
+    flex: 1;
+    min-width: 240px;
+    position: relative;
+  }
+  .search-input-wrap svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-sec);
+    width: 14px;
+    height: 14px;
+  }
+  input[type="text"], select {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-md);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 13px;
+    padding: 9px 12px;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+  }
+  .search-input-wrap input { padding-left: 36px; }
+  input[type="text"]:focus, select:focus { border-color: var(--accent-dim); }
+  select { width: auto; min-width: 140px; cursor: pointer; }
+  select option { background: #1A1A1A; }
+
+  .filter-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter-label { font-family: var(--mono); font-size: 11px; color: var(--text-sec); letter-spacing: 0.08em; text-transform: uppercase; }
+
+  .btn-reset {
+    background: none;
+    border: 1px solid var(--border-md);
+    color: var(--text-sec);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 7px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.15s;
+  }
+  .btn-reset:hover { border-color: var(--accent-dim); color: var(--accent); }
+
+  /* ── RISULTATI label ── */
+  .results-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-sec);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { border-bottom: 1px solid var(--border-md); }
+  th {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-sec);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 10px 16px;
+    text-align: left;
+    white-space: nowrap;
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  tbody tr:hover { background: var(--bg-hover); }
+  td { padding: 14px 16px; font-size: 13px; vertical-align: middle; }
+  td.id-cell {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+  td.title-cell { font-weight: 500; }
+  td.sec { color: var(--text-sec); }
+
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--text-sec);
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── MODAL ── */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 200;
+    overflow-y: auto;
+    padding: 40px 20px;
+  }
+  .modal-backdrop.open { display: flex; align-items: flex-start; justify-content: center; }
+  .modal {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-md);
+    border-radius: 6px;
+    width: 100%;
+    max-width: 1100px;
+    overflow: hidden;
+    animation: fadeUp 0.2s ease;
+  }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  .modal-header {
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .modal-header-left { display: flex; flex-direction: column; gap: 4px; }
+  .modal-id { font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; }
+  .modal-title { font-size: 20px; font-weight: 600; }
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--text-sec);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px 8px;
+    line-height: 1;
+    transition: color 0.15s;
+    flex-shrink: 0;
+  }
+  .modal-close:hover { color: var(--text); }
+
+  /* ── TABS ── */
+  .tabs-nav {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    gap: 0;
+  }
+  .tab-btn {
+    background: none;
+    border: none;
+    color: var(--text-sec);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 14px 20px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.15s;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .tab-panel { display: none; padding: 32px; }
+  .tab-panel.active { display: block; }
+
+  /* ── VIDEO PLAYER ── */
+  .player-wrap {
+    background: #000;
+    border: 1px solid var(--border-md);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  video { width: 100%; display: block; max-height: 480px; }
+  .player-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-sec);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 8px 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── XML DOWNLOAD BUTTONS ── */
+  .xml-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 28px; }
+  .btn-xml {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: 1px solid var(--border-md);
+    color: var(--text-sec);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .btn-xml:hover { border-color: var(--accent-dim); color: var(--accent); }
+  .btn-xml svg { width: 13px; height: 13px; }
+
+  /* ── SCENE GRID ── */
+  .scene-list { display: flex; flex-direction: column; gap: 28px; }
+  .scene-item {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .scene-item-header {
+    padding: 12px 16px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .scene-item-id { font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: 0.06em; }
+  .scene-item-desc { font-size: 12px; color: var(--text-sec); }
+  .scene-item-body { padding: 16px; }
+  .scene-meta { display: flex; gap: 20px; margin-top: 10px; flex-wrap: wrap; }
+  .scene-meta-item { display: flex; flex-direction: column; gap: 2px; }
+  .scene-meta-item .lbl { font-family: var(--mono); font-size: 10px; color: var(--text-ter); letter-spacing: 0.08em; text-transform: uppercase; }
+  .scene-meta-item .val { font-size: 12px; color: var(--text-sec); }
+
+  /* ── FOTO GRID ── */
+  .foto-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+  }
+  .foto-card {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  .foto-card img {
+    width: 100%;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    display: block;
+    background: #111;
+  }
+  .foto-card-label {
+    padding: 8px 10px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-sec);
+    letter-spacing: 0.06em;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── RIEPILOGO ── */
+  .riepilogo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .riepilogo-field {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+  }
+  .riepilogo-field:last-child { border-bottom: none; }
+  .riepilogo-field .lbl { font-family: var(--mono); font-size: 10px; color: var(--text-sec); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
+  .riepilogo-field .val { font-size: 13px; color: var(--text); }
+  .riepilogo-field.full { grid-column: 1 / -1; }
+
+  /* ── LOADING / ERROR ── */
+  .loading {
+    text-align: center;
+    padding: 60px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-sec);
+    letter-spacing: 0.08em;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+  .error-msg { color: #EF4444; font-family: var(--mono); font-size: 12px; padding: 20px; text-align: center; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>Felix the Cat — Archivio Digitale</h1>
+    <span>OAIS · Pat Sullivan Studio · 1919–1927</span>
+  </header>
+  <main>
+    <div class="search-area">
+      <div class="search-row">
+        <div class="search-input-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+          </svg>
+          <input type="text" id="search-full" placeholder="Ricerca libera su tutti i campi…">
+        </div>
+        <button class="btn-reset" onclick="resetFiltri()">Reset</button>
+      </div>
+      <div class="filter-row">
+        <span class="filter-label">Filtri</span>
+        <select id="filter-anno"><option value="">Tutti gli anni</option></select>
+        <select id="filter-studio"><option value="">Tutti gli studi</option></select>
+        <select id="filter-lingua"><option value="">Tutte le lingue</option></select>
+      </div>
+    </div>
+
+    <div class="results-label" id="results-label">—</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Identificativo</th>
+            <th>Titolo</th>
+            <th>Regia</th>
+            <th>Studio</th>
+            <th>Anno</th>
+            <th>Durata</th>
+            <th>Formato</th>
+          </tr>
+        </thead>
+        <tbody id="film-tbody"></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="modal-backdrop" id="modal-backdrop" onclick="chiudiModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <span class="modal-id" id="modal-id"></span>
+        <span class="modal-title" id="modal-title"></span>
+      </div>
+      <button class="modal-close" onclick="chiudiModalBtn()">✕</button>
+    </div>
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="switchTab('film', this)">Film completo</button>
+      <button class="tab-btn" onclick="switchTab('scene', this)">Scene</button>
+      <button class="tab-btn" onclick="switchTab('fotogrammi', this)">Fotogrammi</button>
+      <button class="tab-btn" onclick="switchTab('riepilogo', this)">Riepilogo</button>
+    </div>
+
+    <!-- TAB: FILM -->
+    <div class="tab-panel active" id="tab-film">
+      <div class="player-wrap">
+        <video id="video-film" controls preload="none">
+          <source id="video-film-src" src="" type="video/mp4">
+          Il tuo browser non supporta il tag video.
+        </video>
+        <div class="player-label" id="video-film-label"></div>
+      </div>
+      <div class="xml-actions">
+        <a class="btn-xml" id="btn-mods" href="#" target="_blank">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+          MODS XML
+        </a>
+        <a class="btn-xml" id="btn-premis" href="#" target="_blank">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+          PREMIS XML
+        </a>
+      </div>
+    </div>
+
+    <!-- TAB: SCENE -->
+    <div class="tab-panel" id="tab-scene">
+      <div id="scene-list" class="scene-list"><div class="loading">Caricamento scene…</div></div>
+    </div>
+
+    <!-- TAB: FOTOGRAMMI -->
+    <div class="tab-panel" id="tab-fotogrammi">
+      <div id="foto-grid" class="foto-grid"></div>
+    </div>
+
+    <!-- TAB: RIEPILOGO -->
+    <div class="tab-panel" id="tab-riepilogo">
+      <div class="riepilogo-grid" id="riepilogo-grid"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──
+const API_BASE = window.location.origin;
+
+// ── STATE ──
+let tuttiFilm = [];
+let tutteScene = [];
+let filmCorrente = null;
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', () => {
+  caricaFilm();
+  document.getElementById('search-full').addEventListener('input', filtra);
+  document.getElementById('filter-anno').addEventListener('change', filtra);
+  document.getElementById('filter-studio').addEventListener('change', filtra);
+  document.getElementById('filter-lingua').addEventListener('change', filtra);
+});
+
+async function caricaFilm() {
+  try {
+    const r = await fetch(`${API_BASE}/api/film`);
+    if (!r.ok) throw new Error(r.status);
+    tuttiFilm = await r.json();
+    popolaFiltri(tuttiFilm);
+    renderTabella(tuttiFilm);
+  } catch(e) {
+    document.getElementById('film-tbody').innerHTML =
+      `<tr><td colspan="7" class="error-msg">Errore nel caricamento dei film: ${e.message}</td></tr>`;
+  }
+}
+
+async function caricaScene(filmId) {
+  try {
+    const r = await fetch(`${API_BASE}/api/scene/${filmId}`);
+    if (!r.ok) throw new Error(r.status);
+    return await r.json();
+  } catch(e) { return []; }
+}
+
+// ── FILTRI ──
+function popolaFiltri(film) {
+  const anni   = [...new Set(film.map(f => f.anno).filter(Boolean))].sort();
+  const studi  = [...new Set(film.map(f => f.studio).filter(Boolean))].sort();
+  const lingue = [...new Set(film.map(f => f.lingua).filter(Boolean))].sort();
+
+  [['filter-anno', anni], ['filter-studio', studi], ['filter-lingua', lingue]].forEach(([id, vals]) => {
+    const sel = document.getElementById(id);
+    vals.forEach(v => {
+      const o = document.createElement('option');
+      o.value = o.textContent = v;
+      sel.appendChild(o);
+    });
+  });
+}
+
+function filtra() {
+  const q      = document.getElementById('search-full').value.toLowerCase().trim();
+  const anno   = document.getElementById('filter-anno').value;
+  const studio = document.getElementById('filter-studio').value;
+  const lingua = document.getElementById('filter-lingua').value;
+
+  const risultati = tuttiFilm.filter(f => {
+    const campi = Object.values(f).join(' ').toLowerCase();
+    const matchQ  = !q || campi.includes(q);
+    const matchA  = !anno   || f.anno   === anno;
+    const matchS  = !studio || f.studio === studio;
+    const matchL  = !lingua || f.lingua === lingua;
+    return matchQ && matchA && matchS && matchL;
+  });
+
+  renderTabella(risultati);
+}
+
+function resetFiltri() {
+  document.getElementById('search-full').value = '';
+  ['filter-anno','filter-studio','filter-lingua'].forEach(id => document.getElementById(id).value = '');
+  renderTabella(tuttiFilm);
+}
+
+// ── TABELLA ──
+function renderTabella(film) {
+  const tbody = document.getElementById('film-tbody');
+  const label = document.getElementById('results-label');
+  label.textContent = `${film.length} film`;
+
+  if (!film.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">Nessun risultato per i filtri selezionati</div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = film.map(f => `
+    <tr onclick="apriFilm('${f.identificativo}')">
+      <td class="id-cell">${f.identificativo || '—'}</td>
+      <td class="title-cell">${f.titolo || '—'}</td>
+      <td class="sec">${f.regia || '—'}</td>
+      <td class="sec">${f.studio || '—'}</td>
+      <td class="sec">${f.anno || '—'}</td>
+      <td class="sec">${f.durata || '—'}</td>
+      <td class="sec">${f.formato || '—'}</td>
+    </tr>
+  `).join('');
+}
+
+// ── MODAL ──
+async function apriFilm(filmId) {
+  filmCorrente = tuttiFilm.find(f => f.identificativo === filmId);
+  if (!filmCorrente) return;
+
+  document.getElementById('modal-id').textContent    = filmCorrente.identificativo;
+  document.getElementById('modal-title').textContent = filmCorrente.titolo;
+
+  // Tab film
+  const videoSrc = filmCorrente.url_ia_film || '';
+  document.getElementById('video-film-src').src = videoSrc;
+  document.getElementById('video-film').load();
+  document.getElementById('video-film-label').textContent = filmCorrente.identificativo + '.mp4';
+  document.getElementById('btn-mods').href   = `${API_BASE}/static/xml/${filmId}_MODS.xml`;
+  document.getElementById('btn-premis').href = `${API_BASE}/static/xml/${filmId}_PREMIS.xml`;
+
+  // Reset tabs
+  switchTab('film', document.querySelector('.tab-btn'));
+
+  // Carica scene
+  tutteScene = await caricaScene(filmId);
+  renderScene(tutteScene);
+  renderFotogrammi(tutteScene, filmId);
+  renderRiepilogo(filmCorrente);
+
+  document.getElementById('modal-backdrop').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function chiudiModalBtn() {
+  document.getElementById('modal-backdrop').classList.remove('open');
+  document.body.style.overflow = '';
+  document.getElementById('video-film').pause();
+}
+
+function chiudiModal(e) {
+  if (e.target === document.getElementById('modal-backdrop')) chiudiModalBtn();
+}
+
+// ── TABS ──
+function switchTab(nome, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  else document.querySelectorAll('.tab-btn')[['film','scene','fotogrammi','riepilogo'].indexOf(nome)]?.classList.add('active');
+  document.getElementById('tab-' + nome).classList.add('active');
+  if (nome !== 'film') document.getElementById('video-film').pause();
+}
+
+// ── RENDER SCENE ──
+function renderScene(scene) {
+  const el = document.getElementById('scene-list');
+  if (!scene.length) { el.innerHTML = '<div class="empty-state">Nessuna scena disponibile</div>'; return; }
+
+  el.innerHTML = scene.map(s => `
+    <div class="scene-item">
+      <div class="scene-item-header">
+        <span class="scene-item-id">${s.identificativo || '—'}</span>
+        <a class="btn-xml" href="${API_BASE}/static/xml/${s.identificativo}_DC.xml" target="_blank">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+          Dublin Core
+        </a>
+      </div>
+      <div class="scene-item-body">
+        <div class="player-wrap">
+          <video controls preload="none">
+            <source src="${s.url_ia_scena || ''}" type="video/mp4">
+          </video>
+          <div class="player-label">${s.identificativo || ''}.mp4</div>
+        </div>
+        ${s.descrizione ? `<div class="scene-item-desc">${s.descrizione}</div>` : ''}
+        <div class="scene-meta">
+          ${s.timecode_in  ? `<div class="scene-meta-item"><span class="lbl">In</span><span class="val">${s.timecode_in}</span></div>` : ''}
+          ${s.timecode_out ? `<div class="scene-meta-item"><span class="lbl">Out</span><span class="val">${s.timecode_out}</span></div>` : ''}
+          ${s.durata       ? `<div class="scene-meta-item"><span class="lbl">Durata</span><span class="val">${s.durata}</span></div>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── RENDER FOTOGRAMMI ──
+function renderFotogrammi(scene, filmId) {
+  const el = document.getElementById('foto-grid');
+  if (!scene.length) { el.innerHTML = '<div class="empty-state">Nessun fotogramma disponibile</div>'; return; }
+
+  el.innerHTML = scene.map(s => {
+    const n = s.numero_scena ? String(s.numero_scena).padStart(3,'0') : '000';
+    const src = s.percorso_fotogramma || `${API_BASE}/static/fotogrammi/${filmId}_SCENE_${n}_FRAME.jpg`;
+    return `
+      <div class="foto-card">
+        <img src="${src}" alt="${s.identificativo}" loading="lazy" onerror="this.style.background='#111';this.alt='N/D'">
+        <div class="foto-card-label">${filmId}_SCENE_${n}_FRAME.jpg</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── RENDER RIEPILOGO ──
+function renderRiepilogo(f) {
+  const campi = [
+    ['Identificativo', f.identificativo],
+    ['Titolo',         f.titolo],
+    ['Regia',          f.regia],
+    ['Produzione',     f.produzione],
+    ['Studio',         f.studio],
+    ['Anno',           f.anno],
+    ['Durata',         f.durata],
+    ['Formato',        f.formato],
+    ['Fonte',          f.fonte],
+    ['Diritti',        f.diritti],
+    ['Lingua',         f.lingua],
+    ['Descrizione',    f.descrizione, true],
+  ];
+
+  document.getElementById('riepilogo-grid').innerHTML = campi
+    .filter(([,v]) => v)
+    .map(([l, v, full]) => `
+      <div class="riepilogo-field${full ? ' full' : ''}">
+        <div class="lbl">${l}</div>
+        <div class="val">${v}</div>
+      </div>
+    `).join('');
+}
+</script>
+</body>
+</html>

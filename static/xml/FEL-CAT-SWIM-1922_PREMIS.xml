@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<premis xmlns="info:lc/xmlns/premis-v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="info:lc/xmlns/premis-v2 http://www.loc.gov/standards/premis/v2/premis-v2-3.xsd" version="2.3">
+  <object xsi:type="file">
+    <objectIdentifier>
+      <objectIdentifierType>local</objectIdentifierType>
+      <objectIdentifierValue>FEL-CAT-SWIM-1922</objectIdentifierValue>
+    </objectIdentifier>
+    <objectCharacteristics>
+      <compositionLevel>0</compositionLevel>
+      <fixity>
+        <messageDigestAlgorithm>MD5</messageDigestAlgorithm>
+        <messageDigest>c44d8e5b4c01a2b255e96ef89702b623</messageDigest>
+      </fixity>
+      <size>34817725</size>
+      <format>
+        <formatDesignation>
+          <formatName>35mm (originale), digitale</formatName>
+        </formatDesignation>
+      </format>
+    </objectCharacteristics>
+    <originalName>FEL-CAT-SWIM-1922.mp4</originalName>
+  </object>
+  <event>
+    <eventIdentifier>
+      <eventIdentifierType>local</eventIdentifierType>
+      <eventIdentifierValue>FEL-CAT-SWIM-1922_EVT_001</eventIdentifierValue>
+    </eventIdentifier>
+    <eventType>ingestion</eventType>
+    <eventDateTime>2026-06-30T11:16:41</eventDateTime>
+    <eventDetail>Ingestione del file nell'archivio OAIS Felix the Cat</eventDetail>
+    <eventOutcomeInformation>
+      <eventOutcome>success</eventOutcome>
+    </eventOutcomeInformation>
+    <linkingObjectIdentifier>
+      <linkingObjectIdentifierType>local</linkingObjectIdentifierType>
+      <linkingObjectIdentifierValue>FEL-CAT-SWIM-1922</linkingObjectIdentifierValue>
+    </linkingObjectIdentifier>
+    <linkingAgentIdentifier>
+      <linkingAgentIdentifierType>local</linkingAgentIdentifierType>
+      <linkingAgentIdentifierValue>AGT_001</linkingAgentIdentifierValue>
+    </linkingAgentIdentifier>
+  </event>
+  <agent>
+    <agentIdentifier>
+      <agentIdentifierType>local</agentIdentifierType>
+      <agentIdentifierValue>AGT_001</agentIdentifierValue>
+    </agentIdentifier>
+    <agentName>Alessandro Mantoan</agentName>
+    <agentType>individual</agentType>
+  </agent>
+</premis>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mods xmlns="http://www.loc.gov/mods/v3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-7.xsd" version="3.7">
+  <titleInfo>
+    <title>Felix in the Swim</title>
+  </titleInfo>
+  <name type="personal">
+    <namePart>Otto Messmer</namePart>
+    <role>
+      <roleTerm type="text">director</roleTerm>
+    </role>
+  </name>
+  <typeOfResource>moving image</typeOfResource>
+  <originInfo>
+    <dateIssued encoding="iso8601">1922</dateIssued>
+  </originInfo>
+  <language>
+    <languageTerm type="text">Muto</languageTerm>
+  </language>
+  <accessCondition>Pubblico dominio</accessCondition>
+  <identifier type="local">FEL-CAT-SWIM-1922</identifier>
+</mods>
