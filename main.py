@@ -25,7 +25,7 @@ API_TOKEN     = os.environ.get("NOCODB_API_TOKEN", "")
 FILM_TABLE_ID = os.environ.get("NOCODB_FILM_TABLE_ID", "")
 SCENE_TABLE_ID= os.environ.get("NOCODB_SCENE_TABLE_ID", "")
 
-HEADERS = {"xc-auth": API_TOKEN}
+HEADERS = {"xc-token": API_TOKEN}
 
 # ── Static files ──
 app.mount("/static", StaticFiles(directory="static"), name="static")
