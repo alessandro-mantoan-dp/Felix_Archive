@@ -359,6 +359,50 @@
   }
   @keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
   .error-msg { color: #EF4444; font-family: var(--mono); font-size: 12px; padding: 20px; text-align: center; }
+
+  /* ── LIGHTBOX ── */
+  .lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.93);
+    z-index: 300;
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out;
+  }
+  .lightbox.open { display: flex; }
+  .lightbox img {
+    max-width: 90vw;
+    max-height: 88vh;
+    object-fit: contain;
+    border: 1px solid var(--border-md);
+    cursor: default;
+  }
+  .lightbox-close {
+    position: fixed;
+    top: 20px;
+    right: 28px;
+    background: none;
+    border: none;
+    color: var(--text-sec);
+    font-size: 24px;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.15s;
+  }
+  .lightbox-close:hover { color: var(--text); }
+  .lightbox-label {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-sec);
+    letter-spacing: 0.08em;
+  }
+  .foto-card { cursor: zoom-in; }
 </style>
 </head>
 <body>
@@ -676,7 +720,7 @@ function renderFotogrammi(scene, filmId) {
     const n = s.numero_scena ? String(s.numero_scena).padStart(3,'0') : '000';
     const src = s.percorso_fotogramma || `${API_BASE}/static/fotogrammi/FEL-SWIM-1922-001_SC${n}.jpg`;
     return `
-      <div class="foto-card">
+      <div class="foto-card" onclick="apriLightbox('${src}', 'FEL-SWIM-1922-001_SC${n}.jpg')">
         <img src="${src}" alt="${s.identificativo}" loading="lazy" onerror="this.style.background='#111';this.alt='N/D'">
         <div class="foto-card-label">FEL-SWIM-1922-001_SC${n}.jpg</div>
       </div>
@@ -710,6 +754,27 @@ function renderRiepilogo(f) {
       </div>
     `).join('');
 }
+
+// ── LIGHTBOX ──
+function apriLightbox(src, label) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox-label').textContent = label;
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function chiudiLightbox(e) {
+  if (e && e.target !== document.getElementById('lightbox') && !e.target.classList.contains('lightbox-close')) return;
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
 </script>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="chiudiLightbox(event)">
+  <button class="lightbox-close" onclick="chiudiLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="">
+  <span class="lightbox-label" id="lightbox-label"></span>
+</div>
 </body>
 </html>
