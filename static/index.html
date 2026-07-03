@@ -381,8 +381,10 @@
       <div class="filter-row">
         <span class="filter-label">Filtri</span>
         <select id="filter-anno"><option value="">Tutti gli anni</option></select>
-        <select id="filter-studio"><option value="">Tutti gli studi</option></select>
-        <select id="filter-lingua"><option value="">Tutte le lingue</option></select>
+        <select id="filter-formato"><option value="">Tutti i formati</option></select>
+        <select id="filter-regia"><option value="">Tutta la regia</option></select>
+        <select id="filter-genere"><option value="">Tutti i generi</option></select>
+        <select id="filter-casa"><option value="">Tutte le case di produzione</option></select>
       </div>
     </div>
 
@@ -475,8 +477,10 @@ document.addEventListener('DOMContentLoaded', () => {
   caricaFilm();
   document.getElementById('search-full').addEventListener('input', filtra);
   document.getElementById('filter-anno').addEventListener('change', filtra);
-  document.getElementById('filter-studio').addEventListener('change', filtra);
-  document.getElementById('filter-lingua').addEventListener('change', filtra);
+  document.getElementById('filter-formato').addEventListener('change', filtra);
+  document.getElementById('filter-regia').addEventListener('change', filtra);
+  document.getElementById('filter-genere').addEventListener('change', filtra);
+  document.getElementById('filter-casa').addEventListener('change', filtra);
 });
 
 async function caricaFilm() {
@@ -502,11 +506,13 @@ async function caricaScene(filmId) {
 
 // ── FILTRI ──
 function popolaFiltri(film) {
-  const anni   = [...new Set(film.map(f => f.anno).filter(Boolean))].sort();
-  const studi  = [...new Set(film.map(f => f.studio).filter(Boolean))].sort();
-  const lingue = [...new Set(film.map(f => f.lingua).filter(Boolean))].sort();
+  const anni    = [...new Set(film.map(f => f.anno).filter(Boolean))].sort();
+  const formati = [...new Set(film.map(f => f.formato).filter(Boolean))].sort();
+  const regie   = [...new Set(film.map(f => f.regia).filter(Boolean))].sort();
+  const generi  = [...new Set(film.map(f => f.genere).filter(Boolean))].sort();
+  const case_p  = [...new Set(film.map(f => f['casa di produzione']).filter(Boolean))].sort();
 
-  [['filter-anno', anni], ['filter-studio', studi], ['filter-lingua', lingue]].forEach(([id, vals]) => {
+  [['filter-anno', anni], ['filter-formato', formati], ['filter-regia', regie], ['filter-genere', generi], ['filter-casa', case_p]].forEach(([id, vals]) => {
     const sel = document.getElementById(id);
     vals.forEach(v => {
       const o = document.createElement('option');
@@ -517,18 +523,22 @@ function popolaFiltri(film) {
 }
 
 function filtra() {
-  const q      = document.getElementById('search-full').value.toLowerCase().trim();
-  const anno   = document.getElementById('filter-anno').value;
-  const studio = document.getElementById('filter-studio').value;
-  const lingua = document.getElementById('filter-lingua').value;
+  const q       = document.getElementById('search-full').value.toLowerCase().trim();
+  const anno    = document.getElementById('filter-anno').value;
+  const formato = document.getElementById('filter-formato').value;
+  const regia   = document.getElementById('filter-regia').value;
+  const genere  = document.getElementById('filter-genere').value;
+  const casa    = document.getElementById('filter-casa').value;
 
   const risultati = tuttiFilm.filter(f => {
     const campi = Object.values(f).join(' ').toLowerCase();
-    const matchQ  = !q || campi.includes(q);
-    const matchA  = !anno   || f.anno   === anno;
-    const matchS  = !studio || f.studio === studio;
-    const matchL  = !lingua || f.lingua === lingua;
-    return matchQ && matchA && matchS && matchL;
+    const matchQ  = !q      || campi.includes(q);
+    const matchA  = !anno   || f.anno    === anno;
+    const matchF  = !formato|| f.formato === formato;
+    const matchR  = !regia  || f.regia   === regia;
+    const matchG  = !genere || f.genere  === genere;
+    const matchC  = !casa   || f['casa di produzione'] === casa;
+    return matchQ && matchA && matchF && matchR && matchG && matchC;
   });
 
   renderTabella(risultati);
@@ -536,7 +546,7 @@ function filtra() {
 
 function resetFiltri() {
   document.getElementById('search-full').value = '';
-  ['filter-anno','filter-studio','filter-lingua'].forEach(id => document.getElementById(id).value = '');
+  ['filter-anno','filter-formato','filter-regia','filter-genere','filter-casa'].forEach(id => document.getElementById(id).value = '');
   renderTabella(tuttiFilm);
 }
 
@@ -556,7 +566,7 @@ function renderTabella(film) {
       <td class="id-cell">${f.identificativo || '—'}</td>
       <td class="title-cell">${f.titolo || '—'}</td>
       <td class="sec">${f.regia || '—'}</td>
-      <td class="sec">${f.studio || '—'}</td>
+      <td class="sec">${f['casa di produzione'] || '—'}</td>
       <td class="sec">${f.anno || '—'}</td>
       <td class="sec">${f.durata || '—'}</td>
       <td class="sec">${f.formato || '—'}</td>
@@ -669,7 +679,7 @@ function renderRiepilogo(f) {
     ['Titolo',         f.titolo],
     ['Regia',          f.regia],
     ['Produzione',     f.produzione],
-    ['Studio',         f.studio],
+    ['Casa di produzione', f['casa di produzione']],
     ['Anno',           f.anno],
     ['Durata',         f.durata],
     ['Formato',        f.formato],
