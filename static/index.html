@@ -505,11 +505,23 @@ async function caricaScene(filmId) {
 }
 
 // ── FILTRI ──
+function formatDurata(val) {
+  if (!val) return '—';
+  const s = parseFloat(val);
+  if (isNaN(s)) return val;
+  const h   = Math.floor(s / 3600);
+  const m   = Math.floor((s % 3600) / 60);
+  const sec = (s % 60).toFixed(2).padStart(5, '0');
+  return h > 0
+    ? `${h}:${String(m).padStart(2,'0')}:${sec}`
+    : `0:${String(m).padStart(2,'0')}:${sec}`;
+}
+
 function popolaFiltri(film) {
   const anni    = [...new Set(film.map(f => f.anno).filter(Boolean))].sort();
-  const formati = [...new Set(film.map(f => f.formato).filter(Boolean))].sort();
+  const formati = [...new Set(film.flatMap(f => f.formato ? f.formato.split(',').map(v => v.trim()) : []).filter(Boolean))].sort();
   const regie   = [...new Set(film.map(f => f.regia).filter(Boolean))].sort();
-  const generi  = [...new Set(film.map(f => f.genere).filter(Boolean))].sort();
+  const generi  = [...new Set(film.flatMap(f => f.genere ? f.genere.split(',').map(v => v.trim()) : []).filter(Boolean))].sort();
   const case_p  = [...new Set(film.map(f => f['casa di produzione']).filter(Boolean))].sort();
 
   [['filter-anno', anni], ['filter-formato', formati], ['filter-regia', regie], ['filter-genere', generi], ['filter-casa', case_p]].forEach(([id, vals]) => {
@@ -534,9 +546,9 @@ function filtra() {
     const campi = Object.values(f).join(' ').toLowerCase();
     const matchQ  = !q      || campi.includes(q);
     const matchA  = !anno   || f.anno    === anno;
-    const matchF  = !formato|| f.formato === formato;
+    const matchF  = !formato || (f.formato || '').split(',').map(v=>v.trim()).includes(formato);
     const matchR  = !regia  || f.regia   === regia;
-    const matchG  = !genere || f.genere  === genere;
+    const matchG  = !genere  || (f.genere  || '').split(',').map(v=>v.trim()).includes(genere);
     const matchC  = !casa   || f['casa di produzione'] === casa;
     return matchQ && matchA && matchF && matchR && matchG && matchC;
   });
@@ -568,7 +580,7 @@ function renderTabella(film) {
       <td class="sec">${f.regia || '—'}</td>
       <td class="sec">${f['casa di produzione'] || '—'}</td>
       <td class="sec">${f.anno || '—'}</td>
-      <td class="sec">${f.durata || '—'}</td>
+      <td class="sec">${formatDurata(f.durata)}</td>
       <td class="sec">${f.formato || '—'}</td>
     </tr>
   `).join('');
@@ -681,7 +693,7 @@ function renderRiepilogo(f) {
     ['Produzione',     f.produzione],
     ['Casa di produzione', f['casa di produzione']],
     ['Anno',           f.anno],
-    ['Durata',         f.durata],
+    ['Durata',         formatDurata(f.durata)],
     ['Formato',        f.formato],
     ['Fonte',          f.fonte],
     ['Diritti',        f.diritti],
