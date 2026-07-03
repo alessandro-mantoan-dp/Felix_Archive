@@ -573,7 +573,7 @@ async function apriFilm(filmId) {
   document.getElementById('modal-title').textContent = filmCorrente.titolo;
 
   // Tab film
-  const videoSrc = filmCorrente.url_ia_film || '';
+  const videoSrc = filmCorrente.file_video || '';
   document.getElementById('video-film-src').src = videoSrc;
   document.getElementById('video-film').load();
   document.getElementById('video-film-label').textContent = filmCorrente.identificativo + '.mp4';
@@ -630,7 +630,7 @@ function renderScene(scene) {
       <div class="scene-item-body">
         <div class="player-wrap">
           <video controls preload="none">
-            <source src="${s.url_ia_scena || ''}" type="video/mp4">
+            <source src="${s.file_video || ''}" type="video/mp4">
           </video>
           <div class="player-label">${s.identificativo || ''}.mp4</div>
         </div>
@@ -652,11 +652,11 @@ function renderFotogrammi(scene, filmId) {
 
   el.innerHTML = scene.map(s => {
     const n = s.numero_scena ? String(s.numero_scena).padStart(3,'0') : '000';
-    const src = s.percorso_fotogramma || `${API_BASE}/static/fotogrammi/${filmId}_SCENE_${n}_FRAME.jpg`;
+    const src = s.percorso_fotogramma || `${API_BASE}/static/fotogrammi/FEL-SWIM-1922-001_SC${n}.jpg`;
     return `
       <div class="foto-card">
         <img src="${src}" alt="${s.identificativo}" loading="lazy" onerror="this.style.background='#111';this.alt='N/D'">
-        <div class="foto-card-label">${filmId}_SCENE_${n}_FRAME.jpg</div>
+        <div class="foto-card-label">FEL-SWIM-1922-001_SC${n}.jpg</div>
       </div>
     `;
   }).join('');
